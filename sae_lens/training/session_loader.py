@@ -26,7 +26,7 @@ class LMSparseAutoencoderSessionloader:
         Loads a session for training a sparse autoencoder on a language model.
         """
 
-        model = self.get_model(self.cfg.model_name)
+        model = self.get_model(self.cfg.model_name, self.cfg.finetune_checkpoint)
         model.to(self.cfg.device)
         activations_loader = ActivationsStore.from_config(
             model,
@@ -54,7 +54,7 @@ class LMSparseAutoencoderSessionloader:
 
         return model, sparse_autoencoder, activations_loader
 
-    def get_model(self, model_name: str) -> HookedRootModule:
+    def get_model(self, model_name: str, finetune_checkpoint=None) -> HookedRootModule:
         """
         Loads a model from transformer lens.
 
@@ -66,6 +66,7 @@ class LMSparseAutoencoderSessionloader:
         model = load_model(
             self.cfg.model_class_name,
             model_name,
+            finetune_checkpoint,
             device=self.cfg.device,
             model_from_pretrained_kwargs=self.cfg.model_from_pretrained_kwargs,
         )

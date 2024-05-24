@@ -24,6 +24,7 @@ class LanguageModelSAERunnerConfig:
     # Data Generating Function (Model + Training Distibuion)
     model_name: str = "gelu-2l"
     model_class_name: str = "HookedTransformer"
+    finetune_checkpoint: str | None = None
     hook_point: str = "blocks.{layer}.hook_mlp_out"
     hook_point_eval: str = "blocks.{layer}.attn.pattern"
     hook_point_layer: int = 0

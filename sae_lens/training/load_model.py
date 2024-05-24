@@ -3,20 +3,42 @@ from typing import Any, cast
 import torch
 from transformer_lens import HookedTransformer
 from transformer_lens.hook_points import HookedRootModule
+from transformers import AutoModelForCausalLM
+from peft import PeftModel
 
 
 def load_model(
     model_class_name: str,
     model_name: str,
+    finetune_checkpoint: str | None = None,
     device: str | torch.device | None = None,
     model_from_pretrained_kwargs: dict[str, Any] | None = None,
 ) -> HookedRootModule:
     model_from_pretrained_kwargs = model_from_pretrained_kwargs or {}
 
     if model_class_name == "HookedTransformer":
-        return HookedTransformer.from_pretrained(
+
+        # Load model normally
+        model = HookedTransformer.from_pretrained(
             model_name=model_name, device=device, **model_from_pretrained_kwargs
         )
+
+        # Load finetune checkpoint if provided
+        if finetune_checkpoint is not None:
+
+            # load the finetune from a directory (probably local) and load the base model
+            finetune = AutoModelForCausalLM.from_pretrained(finetune_checkpoint)
+            base_model = AutoModelForCausalLM.from_pretrained(finetune.name_or_path)
+
+            # Merge the weights
+            finetune_merged = PeftModel.from_pretrained(base_model, finetune_checkpoint)
+            finetune_merged = finetune_merged.merge_and_unload()
+            finetune_merged.eval()
+            
+            # swap the state dict
+
+        return model
+    
     elif model_class_name == "HookedMamba":
         try:
             from mamba_lens import HookedMamba
